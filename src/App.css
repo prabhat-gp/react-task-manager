@@ -1,38 +1,158 @@
 .App {
   text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
 }
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+  padding: 20px;
+  color: white;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.App-header h1 {
+  margin: 0 0 10px 0;
+  font-size: 2rem;
+}
+
+.App-header p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.main-content {
   display: flex;
   flex-direction: column;
+  gap: 20px;
+}
+
+.task-input {
+  display: flex;
+  gap: 10px;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+}
+
+.task-input-field {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.task-input-field:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.add-button {
+  padding: 12px 20px;
+  background-color: #007bff;
   color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
 }
 
-.App-link {
-  color: #61dafb;
+.add-button:hover {
+  background-color: #0056b3;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.task-stats {
+  display: flex;
+  justify-content: space-around;
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.filter-buttons button {
+  padding: 8px 16px;
+  border: 2px solid #ddd;
+  background-color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-buttons button:hover {
+  background-color: #f8f9fa;
+}
+
+.filter-buttons button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.task-item:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.task-item.completed {
+  opacity: 0.7;
+  background-color: #f8f9fa;
+}
+
+.task-text {
+  flex: 1;
+  text-align: left;
+}
+
+.task-item.completed .task-text {
+  text-decoration: line-through;
+}
+
+.delete-button {
+  padding: 6px 12px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+}
+
+.no-tasks {
+  color: #666;
+  font-style: italic;
+  padding: 20px;
 }
