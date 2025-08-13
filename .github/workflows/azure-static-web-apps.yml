@@ -1,0 +1,131 @@
+# .github/workflows/azure-static-web-apps.yml
+name: Azure Static Web Apps CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18.x'
+  REACT_APP_VERSION: ${{ github.sha }}
+
+jobs:
+  build_and_deploy_job:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build and Deploy Job
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linting
+      run: npm run build # This includes ESLint checking
+
+    - name: Run tests
+      run: npm test
+      env:
+        CI: true
+
+    - name: Upload test coverage
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage/
+
+    - name: Set environment variables for production
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "REACT_APP_ENVIRONMENT=production" >> $GITHUB_ENV
+
+    - name: Set environment variables for staging
+      if: github.event_name == 'pull_request'
+      run: |
+        echo "REACT_APP_ENVIRONMENT=staging" >> $GITHUB_ENV
+
+    - name: Build application
+      run: npm run build
+      env:
+        REACT_APP_VERSION: ${{ github.sha }}
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-files
+        path: build/
+
+    - name: Build And Deploy to Azure Static Web Apps
+      id: builddeploy
+      uses: Azure/static-web-apps-deploy@v1
+      with:
+        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        action: "upload"
+        app_location: "/" # App source code path
+        api_location: "" # API source code path - optional
+        output_location: "build" # Built app content directory
+      env:
+        REACT_APP_ENVIRONMENT: ${{ env.REACT_APP_ENVIRONMENT }}
+        REACT_APP_VERSION: ${{ github.sha }}
+
+    - name: Add PR comment with deployment URL
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '🚀 **Deployment successful!** \n\nYour app has been deployed to: ${{ steps.builddeploy.outputs.static_web_app_url }}'
+          });
+
+  close_pull_request_job:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Close Pull Request Job
+    steps:
+    - name: Close Pull Request
+      id: closepullrequest
+      uses: Azure/static-web-apps-deploy@v1
+      with:
+        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+        action: "close"
+
+  security_scan:
+    runs-on: ubuntu-latest
+    name: Security Scan
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run npm audit
+      run: npm audit --audit-level moderate
+
+    - name: Upload security scan results
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-scan-results
+        path: npm-audit-results.json
