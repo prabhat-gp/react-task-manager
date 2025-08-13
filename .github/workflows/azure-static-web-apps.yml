@@ -9,28 +9,28 @@ on:
     branches: [ main ]
 
 env:
-  NODE_VERSION: '18.x'
+  NODE_VERSION: '16.x'
   REACT_APP_VERSION: ${{ github.sha }}
 
 jobs:
   build_and_deploy_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Build and Deploy Job
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
       with:
         submodules: true
 
     - name: Set up Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
 
     - name: Cache dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v2
       with:
         path: ~/.npm
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -49,7 +49,7 @@ jobs:
         CI: true
 
     - name: Upload test coverage
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2
       with:
         name: coverage-report
         path: coverage/
@@ -70,7 +70,7 @@ jobs:
         REACT_APP_VERSION: ${{ github.sha }}
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2
       with:
         name: build-files
         path: build/
@@ -91,7 +91,7 @@ jobs:
 
     - name: Add PR comment with deployment URL
       if: github.event_name == 'pull_request'
-      uses: actions/github-script@v6
+      uses: actions/github-script@v5
       with:
         script: |
           github.rest.issues.createComment({
@@ -103,7 +103,7 @@ jobs:
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Close Pull Request Job
     steps:
     - name: Close Pull Request
@@ -114,18 +114,26 @@ jobs:
         action: "close"
 
   security_scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Security Scan
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js for security scan
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install dependencies for audit
+      run: npm ci
 
     - name: Run npm audit
       run: npm audit --audit-level moderate
 
     - name: Upload security scan results
       if: failure()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2
       with:
         name: security-scan-results
         path: npm-audit-results.json
